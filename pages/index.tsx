@@ -1,13 +1,13 @@
 import type { NextPage } from 'next';
 import { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
-import CodeMirror, { useCodeMirror } from '@uiw/react-codemirror';
+import{ useCodeMirror } from '@uiw/react-codemirror';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { ViewUpdate } from '@codemirror/view';
+import { ViewUpdate, keymap } from '@codemirror/view';
 import { useCallback } from 'react';
 import { languages } from '@codemirror/language-data';
 import { cursorDocEnd } from '@codemirror/commands';
-import { EditorState } from '@codemirror/state';
+import {boldKeyBinding, bold} from '../utilities/codemirror/bold';
 
 type Theme = 'light' | 'dark';
 
@@ -22,6 +22,7 @@ const Home: NextPage = () => {
     container: editor.current,
     extensions: [
       markdown({ base: markdownLanguage, codeLanguages: languages }),
+      keymap.of([boldKeyBinding])
     ],
     onChange: onChange,
     autoFocus: true,
@@ -74,6 +75,7 @@ const Home: NextPage = () => {
       <main>
         <h1>Welcome</h1>
         <button onClick={onThemeChange}>Change Theme</button>
+        <button onClick={()=> bold(view)}>Bold</button>
         <button
           onClick={async () => {
             if (view) {
