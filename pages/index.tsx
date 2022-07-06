@@ -67,6 +67,7 @@ const Home: NextPage = () => {
         extensions: [
           basicSetup({
             allowMultipleSelections: false,
+            syntaxHighlighting: true,
             highlightActiveLine: false,
             lineNumbers: false,
             foldGutter: false,
@@ -75,18 +76,6 @@ const Home: NextPage = () => {
       })
     );
 
-    /* const transaction = view?.state.update({
-      changes: {
-        from: 0,
-        to: view?.state?.doc.length,
-        insert: body.note.content,
-      },
-    });
-
-    if (transaction && view) {
-      view?.dispatch(transaction);
-      cursorDocEnd(view);
-    } */
   };
   const onThemeChange = () => {
     if (theme === xcodeLight) setTheme('dark');
