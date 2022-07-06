@@ -1,18 +1,29 @@
 import type { NextPage } from 'next';
 import { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
-import { useCodeMirror } from '@uiw/react-codemirror';
+import { basicSetup, useCodeMirror } from '@uiw/react-codemirror';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { ViewUpdate, keymap } from '@codemirror/view';
+import { xcodeLight } from '@uiw/codemirror-theme-xcode';
+import {
+  ViewUpdate,
+  keymap,
+  dropCursor,
+  highlightSpecialChars,
+  drawSelection,
+} from '@codemirror/view';
 import { useCallback } from 'react';
+import { bracketMatching } from '@codemirror/language';
+import { searchKeymap, search, selectMatches } from '@codemirror/search';
+import { closeBrackets } from '@codemirror/autocomplete';
 import { languages } from '@codemirror/language-data';
-import { cursorDocEnd } from '@codemirror/commands';
+import { cursorDocEnd, history, standardKeymap } from '@codemirror/commands';
 import { boldKeyBinding, bold } from '../utilities/codemirror/bold';
-
-type Theme = 'light' | 'dark';
+import { EditorState, Extension } from '@codemirror/state';
 
 const Home: NextPage = () => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<'light' | Extension | 'dark' | undefined>(
+    xcodeLight
+  );
   const [value, setValue] = useState('');
   const editor = useRef<HTMLDivElement>(null);
   const onChange = useCallback((value: string, viewUpdate: ViewUpdate) => {
@@ -20,9 +31,20 @@ const Home: NextPage = () => {
   }, []);
   const { setContainer, view } = useCodeMirror({
     container: editor.current,
+    basicSetup: false,
     extensions: [
+      bracketMatching(),
+      drawSelection(),
+      closeBrackets(),
+      dropCursor(),
+      search(),
+      highlightSpecialChars(),
       markdown({ base: markdownLanguage, codeLanguages: languages }),
+      keymap.of(standardKeymap),
+      keymap.of(searchKeymap),
       keymap.of([boldKeyBinding]),
+      EditorState.allowMultipleSelections.of(true),
+      history(),
     ],
     onChange: onChange,
     autoFocus: true,
@@ -39,7 +61,21 @@ const Home: NextPage = () => {
     });
     const body = await data.json();
 
-    const transaction = view?.state.update({
+    view?.setState(
+      EditorState.create({
+        doc: body.note.content,
+        extensions: [
+          basicSetup({
+            allowMultipleSelections: false,
+            highlightActiveLine: false,
+            lineNumbers: false,
+            foldGutter: false,
+          }),
+        ],
+      })
+    );
+
+    /* const transaction = view?.state.update({
       changes: {
         from: 0,
         to: view?.state?.doc.length,
@@ -50,11 +86,11 @@ const Home: NextPage = () => {
     if (transaction && view) {
       view?.dispatch(transaction);
       cursorDocEnd(view);
-    }
+    } */
   };
   const onThemeChange = () => {
-    if (theme === 'light') setTheme('dark');
-    if (theme === 'dark') setTheme('light');
+    if (theme === xcodeLight) setTheme('dark');
+    if (theme === 'dark') setTheme(xcodeLight);
   };
 
   useEffect(() => {
